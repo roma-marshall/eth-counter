@@ -4,30 +4,42 @@
   >
     <h1 class="text-3xl font-bold">⚡ Counter dApp</h1>
 
-    <div class="text-xl">
-      Current value: <b>{{ count }}</b>
+    <div v-if="!isConnected" class="mt-6">
+      <button
+        @click="connectWallet"
+        class="px-6 py-3 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 transition cursor-pointer"
+      >
+        Connect Wallet
+      </button>
     </div>
 
-    <div class="flex gap-4">
-      <button
-        @click="inc"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-      >
-        +1
-      </button>
+    <div v-else>
+      <div class="text-xl mb-4">
+        Current value: <b>{{ count }}</b>
+      </div>
 
-      <input
-        v-model.number="incrementValue"
-        type="number"
-        min="1"
-        class="border px-3 py-2 rounded-lg w-24 text-center"
-      />
-      <button
-        @click="incBy"
-        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-      >
-        +N
-      </button>
+      <div class="flex gap-4">
+        <button
+          @click="inc"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
+        >
+          +1
+        </button>
+
+        <input
+          v-model.number="incrementValue"
+          type="number"
+          min="1"
+          class="border px-3 py-2 rounded-lg w-24 text-center"
+        />
+
+        <button
+          @click="incBy"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition cursor-pointer"
+        >
+          +N
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -39,24 +51,27 @@ import Counter from "../abi/Counter.json"; // { address, abi }
 
 const count = ref(0);
 const incrementValue = ref(1);
+const isConnected = ref(false);
+
 let contract: ethers.Contract | null = null;
-``;
 
 // Sepolia chainId (hex)
 const SEPOLIA_CHAIN_ID = "0xaa36a7";
 
 async function ensureSepolia() {
-  const chainId = await window.ethereum.request({ method: "eth_chainId" });
+  const chainId = await (window as any).ethereum.request({
+    method: "eth_chainId",
+  });
 
   if (chainId !== SEPOLIA_CHAIN_ID) {
     try {
-      await window.ethereum.request({
+      await (window as any).ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: SEPOLIA_CHAIN_ID }],
       });
     } catch (err: any) {
       if (err.code === 4902) {
-        await window.ethereum.request({
+        await (window as any).ethereum.request({
           method: "wallet_addEthereumChain",
           params: [
             {
@@ -79,17 +94,18 @@ async function ensureSepolia() {
   }
 }
 
-async function initContract() {
-  if (!window.ethereum) {
-    alert("⚠️ Установите MetaMask");
+async function connectWallet() {
+  if (!(window as any).ethereum) {
+    alert("⚠️ Install MetaMask");
     return;
   }
 
   await ensureSepolia();
-  const provider = new ethers.BrowserProvider(window.ethereum);
+  const provider = new ethers.BrowserProvider((window as any).ethereum);
 
   await provider.send("eth_requestAccounts", []);
   const signer = await provider.getSigner();
+
   contract = new ethers.Contract(Counter.address, Counter.abi, signer);
   const value = await contract.x();
   count.value = Number(value);
@@ -99,6 +115,8 @@ async function initContract() {
     const newValue = await contract.x();
     count.value = Number(newValue);
   });
+
+  isConnected.value = true;
 }
 
 async function inc() {
@@ -110,12 +128,21 @@ async function inc() {
 async function incBy() {
   if (!contract) return;
   if (incrementValue.value <= 0) {
-    alert("Введите число больше нуля");
+    alert("Enter a number greater than zero");
     return;
   }
   const tx = await contract.incBy(incrementValue.value);
   await tx.wait();
 }
 
-onMounted(initContract);
+onMounted(async () => {
+  if ((window as any).ethereum) {
+    const accounts = await (window as any).ethereum.request({
+      method: "eth_accounts",
+    });
+    if (accounts.length > 0) {
+      await connectWallet();
+    }
+  }
+});
 </script>
