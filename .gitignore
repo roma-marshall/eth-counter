@@ -19,8 +19,11 @@ frontend/.env.*
 # Hardhat (contracts)
 contracts/node_modules/
 contracts/dist/
+contracts/.env
+contracts/.env.*
 contracts/bundle/
 contracts/artifacts/
 contracts/cache/
 contracts/types/
 contracts/coverage/
+contracts/ignition/deployments
