@@ -7,14 +7,14 @@ node_modules/
 .fleet/
 
 # Nuxt (frontend)
-frontend/.nuxt/
-frontend/.output/
-frontend/.nitro/
-frontend/.cache/
-frontend/dist/
-frontend/.env
-frontend/.env.*
-!frontend/.env.example
+frontend/nuxt-counter/.nuxt/
+frontend/nuxt-counter/.output/
+frontend/nuxt-counter/.nitro/
+frontend/nuxt-counter/.cache/
+frontend/nuxt-counter/dist/
+frontend/nuxt-counter/.env
+frontend/nuxt-counter/.env.*
+!frontend/nuxt-counter/.env.example
 
 # Hardhat (contracts)
 contracts/node_modules/
