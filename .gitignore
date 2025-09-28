@@ -1,0 +1,26 @@
+# Misc
+node_modules/
+*.log
+.DS_Store
+.idea/
+.vscode/
+.fleet/
+
+# Nuxt (frontend)
+frontend/.nuxt/
+frontend/.output/
+frontend/.nitro/
+frontend/.cache/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Hardhat (contracts)
+contracts/node_modules/
+contracts/dist/
+contracts/bundle/
+contracts/artifacts/
+contracts/cache/
+contracts/types/
+contracts/coverage/
