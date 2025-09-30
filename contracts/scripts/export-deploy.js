@@ -10,32 +10,48 @@ const ADDRESSES_PATH = path.join(
   "../ignition/deployments/chain-11155111/deployed_addresses.json"
 );
 
-const ABI_PATH = path.join(
-  __dirname,
-  "../artifacts/contracts/Counter.sol/Counter.json"
-);
-
 const FRONTEND_PATH = path.join(__dirname, "../../frontend/nuxt-counter/abi/");
+
+const CONTRACTS = [
+  {
+    key: "CounterModule#Counter",
+    artifact: "../artifacts/contracts/Counter.sol/Counter.json",
+    output: "Counter.json",
+  },
+  {
+    key: "CounterFactoryModule#CounterFactory",
+    artifact: "../artifacts/contracts/CounterFactory.sol/CounterFactory.json",
+    output: "CounterFactory.json",
+  },
+];
 
 function exportDeployment() {
   const addresses = JSON.parse(fs.readFileSync(ADDRESSES_PATH, "utf8"));
-  const address = addresses["CounterModule#Counter"];
-  const artifact = JSON.parse(fs.readFileSync(ABI_PATH, "utf8"));
-  const abi = artifact.abi;
-  const output = { address, abi };
 
   if (!fs.existsSync(FRONTEND_PATH)) {
     fs.mkdirSync(FRONTEND_PATH, { recursive: true });
   }
 
-  fs.writeFileSync(
-    path.join(FRONTEND_PATH, "Counter.json"),
-    JSON.stringify(output, null, 2)
-  );
+  CONTRACTS.forEach(({ key, artifact, output }) => {
+    const address = addresses[key];
+    if (!address) {
+      console.warn(`⚠️ Address not found for key: ${key}`);
+      return;
+    }
 
-  console.log(
-    "✅ Exported ABI + address to frontend/nuxt-counter/abi/Counter.json"
-  );
+    const artifactPath = path.join(__dirname, artifact);
+    const artifactJson = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+    const abi = artifactJson.abi;
+
+    const data = { address, abi };
+
+    fs.writeFileSync(
+      path.join(FRONTEND_PATH, output),
+      JSON.stringify(data, null, 2)
+    );
+
+    console.log(`✅ Exported ${key} → ${output}`);
+  });
 }
 
 exportDeployment();
